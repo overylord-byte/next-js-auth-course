@@ -1,0 +1,17 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "declaration": false,
+    "declarationMap": false,
+
+    "rootDir": "src",
+    "outDir": "dist",
+
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"],
+      "@routes/*": ["routes/*"]
+    }
+  },
+  "include": ["src"]
+}
