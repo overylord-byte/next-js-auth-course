@@ -11,6 +11,7 @@ export const updateAccountRouter = Router();
  */
 updateAccountRouter.post('/update-account', requireBearerToken, async (req, res) => {
     const sub = req.accessTokenPayload?.sub;
+
     if (!sub) {
         res.status(401).json({ error: 'Unauthorized', message: 'Access token is missing sub (Keycloak user id)' });
         return;
