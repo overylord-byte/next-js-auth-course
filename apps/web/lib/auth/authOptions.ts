@@ -21,7 +21,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, trigger }) {
       if (account?.access_token) {
         const expiresAt =
           typeof account.expires_at === "number"
@@ -36,21 +36,53 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
-      const expiresAtSec = token.expiresAt;
-      if (typeof expiresAtSec === "number" && Date.now() < expiresAtSec * 1000) {
-        return token;
-      }
+      /**
+       * Previous implementation:
+       *
+       * const expiresAtSec = token.expiresAt;
+       * if (typeof expiresAtSec === "number" && Date.now() < expiresAtSec * 1000) {
+       *   return token;
+       * }
+       *
+       * if (!token.refreshToken) {
+       *   return { ...token, error: "MissingRefreshToken" };
+       * }
+       *
+       * return refreshKeycloakAccessToken(token);
+       */
 
       if (!token.refreshToken) {
         return { ...token, error: "MissingRefreshToken" };
       }
 
+      /**
+       * Manual session update.
+       *
+       * This is needed for the learning case:
+       * 1. backend updates customer_id in Keycloak
+       * 2. current access token is still valid, but old
+       * 3. client calls useSession().update()
+       * 4. NextAuth should force refresh access token
+       */
+      if (trigger === "update") {
+        return refreshKeycloakAccessToken(token);
+      }
+
+      const expiresAtSec = token.expiresAt;
+
+      if (typeof expiresAtSec === "number" && Date.now() < expiresAtSec * 1000) {
+        return token;
+      }
+
       return refreshKeycloakAccessToken(token);
     },
+
     async session({ session, token }) {
       session.accessToken =
         typeof token.accessToken === "string" ? token.accessToken : undefined;
+
       session.error = typeof token.error === "string" ? token.error : undefined;
+
       return session;
     },
   },
