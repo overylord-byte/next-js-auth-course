@@ -15,8 +15,9 @@
     "@keycloak/keycloak-admin-client": "^26.6.1",
     "@types/cors": "^2.8.19",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jose": "^6.2.3"
+    "jose": "^5.9.6"
   },
   "devDependencies": {
     "@repo/contracts": "workspace:*",

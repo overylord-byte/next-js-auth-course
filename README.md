@@ -1,5 +1,7 @@
 # Turborepo starter
 
+**Backend API (Express + Keycloak):** see [apps/server/README.md](apps/server/README.md).
+
 This Turborepo starter is maintained by the Turborepo core team.
 
 ## Using this example

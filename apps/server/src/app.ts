@@ -1,6 +1,6 @@
 import express from 'express';
 import {registerRoutes} from '@/routes';
-import {loggerMiddleware} from "@/middleware/logger.middleware";
+import {loggerMiddleware} from "@/middlewares/logger.middleware";
 import cors from "cors";
 
 export function createApp() {

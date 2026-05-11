@@ -7,32 +7,32 @@
  * - Add user attribute `customer_id` and a "User Attribute" protocol mapper so fresh tokens include the claim.
  */
 
-const trimTrailingSlash = (value: string) => value.replace(/\/$/, '');
+const trimTrailingSlash = (value: string) => value.replace(/\/$/, "");
 
 export type KeycloakPublicConfig = {
-    baseUrl: string;
-    realm: string;
+  baseUrl: string;
+  realm: string;
 };
 
 export function getKeycloakPublicConfig(): KeycloakPublicConfig {
-    const baseUrlRaw = process.env.KEYCLOAK_BASE_URL;
-    const realm = process.env.KEYCLOAK_REALM;
+  const baseUrlRaw = process.env.KEYCLOAK_BASE_URL;
+  const realm = process.env.KEYCLOAK_REALM;
 
-    if (!baseUrlRaw || !realm) {
-        throw new Error('KEYCLOAK_BASE_URL and KEYCLOAK_REALM must be set');
-    }
+  if (!baseUrlRaw || !realm) {
+    throw new Error("KEYCLOAK_BASE_URL and KEYCLOAK_REALM must be set");
+  }
 
-    return { baseUrl: trimTrailingSlash(baseUrlRaw), realm };
+  return { baseUrl: trimTrailingSlash(baseUrlRaw), realm };
 }
 
 /** Issuer and audience checks must match what Keycloak puts in access tokens. */
 export function getKeycloakIssuer(): string {
-    const { baseUrl, realm } = getKeycloakPublicConfig();
-    return `${baseUrl}/realms/${realm}`;
+  const { baseUrl, realm } = getKeycloakPublicConfig();
+  return `${baseUrl}/realms/${realm}`;
 }
 
 export function getKeycloakJwksUri(): string {
-    return `${getKeycloakIssuer()}/protocol/openid-connect/certs`;
+  return `${getKeycloakIssuer()}/protocol/openid-connect/certs`;
 }
 
 /**
@@ -40,24 +40,27 @@ export function getKeycloakJwksUri(): string {
  * so a single-realm dev setup stays simple.
  */
 export function getKeycloakAdminRealm(): string {
-    return process.env.KEYCLOAK_ADMIN_REALM ?? getKeycloakPublicConfig().realm;
+  return process.env.KEYCLOAK_ADMIN_REALM ?? getKeycloakPublicConfig().realm;
 }
 
-export function getKeycloakAdminClientCredentials(): { clientId: string; clientSecret: string } {
-    const clientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID;
-    const clientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
+export function getKeycloakAdminClientCredentials(): {
+  clientId: string;
+  clientSecret: string;
+} {
+  const clientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID;
+  const clientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
 
-    if (!clientId || !clientSecret) {
-        throw new Error(
-            'KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set for POST /update-account',
-        );
-    }
+  if (!clientId || !clientSecret) {
+    throw new Error(
+      "KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set for POST /update-account",
+    );
+  }
 
-    return { clientId, clientSecret };
+  return { clientId, clientSecret };
 }
 
 /** Optional: set to your API resource client_id if you want strict `aud` validation. */
 export function getOptionalJwtAudience(): string | undefined {
-    const aud = process.env.KEYCLOAK_JWT_AUDIENCE;
-    return aud && aud.length > 0 ? aud : undefined;
+  const aud = process.env.KEYCLOAK_JWT_AUDIENCE;
+  return aud && aud.length > 0 ? aud : undefined;
 }

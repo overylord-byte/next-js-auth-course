@@ -1,15 +1,27 @@
-import KcAdminClient from '@keycloak/keycloak-admin-client';
 import {
     getKeycloakAdminClientCredentials,
     getKeycloakAdminRealm,
     getKeycloakPublicConfig,
 } from '@/keycloak/env';
 
+type KcAdminClientCtor = (typeof import('@keycloak/keycloak-admin-client'))['default'];
+
+/** v26+ admin client is ESM-only; ts-node-dev runs as CJS — lazy dynamic import avoids require(ESM). */
+let kcAdminClientClassPromise: Promise<KcAdminClientCtor> | undefined;
+
+function loadKcAdminClientClass(): Promise<KcAdminClientCtor> {
+    if (!kcAdminClientClassPromise) {
+        kcAdminClientClassPromise = import('@keycloak/keycloak-admin-client').then((m) => m.default);
+    }
+    return kcAdminClientClassPromise;
+}
+
 /**
  * Writes `customer_id` as a Keycloak user attribute.
  * After refresh, a protocol mapper can surface the same name as a JWT claim for GET /customer.
  */
 export async function setKeycloakUserCustomerId(keycloakUserId: string, customerId: string): Promise<void> {
+    const KcAdminClient = await loadKcAdminClientClass();
     const { baseUrl, realm: userRealm } = getKeycloakPublicConfig();
     const adminRealm = getKeycloakAdminRealm();
     const { clientId, clientSecret } = getKeycloakAdminClientCredentials();
