@@ -18,7 +18,7 @@ Example (official image, dev mode):
 docker run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:latest start-dev
 ```
 
-Admin UI: `http://localhost:8080`. Create a realm, users, a public/confidential client for your app, and a **User Attribute** protocol mapper so claim `customer_id` appears on access tokens after refresh. The backend also needs a **confidential client with service account** + permission to update users (see env vars).
+Admin UI: `http://localhost:8080`. Create a realm, users, a public/confidential client for your app, and a **User Attribute** protocol mapper so claim `customer_id` appears on access tokens after refresh. For `POST /update-account`, the backend uses **Keycloak admin credentials** (see below) only on the server to obtain an **admin token** and call the Admin REST API — the browser never sees these secrets.
 
 ## Environment variables
 
@@ -29,20 +29,26 @@ Required for JWT verification and JWKS:
 | `KEYCLOAK_BASE_URL` | Keycloak base URL (no trailing slash), e.g. `http://localhost:8080` |
 | `KEYCLOAK_REALM` | Realm that issues tokens |
 
-Required for `POST /update-account` (Admin API / service account):
+Required for `POST /update-account` (Admin API, local password grant):
 
 | Variable | Purpose |
 |----------|---------|
-| `KEYCLOAK_ADMIN_CLIENT_ID` | Confidential client ID (service account enabled) |
-| `KEYCLOAK_ADMIN_CLIENT_SECRET` | Client secret |
+| `KEYCLOAK_ADMIN_USERNAME` | Keycloak admin username (local dev often `admin`) |
+| `KEYCLOAK_ADMIN_PASSWORD` | Keycloak admin password — **server only**, never sent to the frontend |
 
 Optional:
 
 | Variable | Purpose |
 |----------|---------|
-| `KEYCLOAK_ADMIN_REALM` | Realm where the admin client lives (defaults to `KEYCLOAK_REALM`) |
+| `KEYCLOAK_ADMIN_REALM` | Realm used for admin login (default **`master`**) |
+| `KEYCLOAK_TARGET_REALM` | Realm whose users are updated (defaults to **`KEYCLOAK_REALM`**, i.e. the realm that issued the user access token) |
+| `KEYCLOAK_ADMIN_AUTH_CLIENT_ID` | OAuth client for direct access grant (default **`admin-cli`**) |
 | `KEYCLOAK_JWT_AUDIENCE` | If set, access tokens must include this `aud` |
 | `PORT` | HTTP port for this API (default **3001**) |
+
+**Tokens:** the **user** `Authorization: Bearer` token identifies who is calling `/update-account` (`sub` → Keycloak user id). A separate **admin** token is obtained with the env username/password and is used only inside the backend to update that user’s attributes in Keycloak. This pattern is for **local learning/dev**; production should use a proper service account or secrets management and **cache or refresh** the admin token instead of authenticating on every request.
+
+**Security:** do not expose `KEYCLOAK_ADMIN_PASSWORD` (or any admin client secret) to the SPA; the frontend must never store admin credentials.
 
 ## Start the backend
 

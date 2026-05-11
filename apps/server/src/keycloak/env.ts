@@ -2,8 +2,7 @@
  * Central place for Keycloak-related environment variables.
  *
  * Setup checklist (realm that issues tokens for your SPA/API):
- * - Create a confidential client for Admin API (service account ON).
- * - Grant it realm-management roles (at least manage-users) OR use a narrower custom role policy.
+ * - Local dev: admin password grant (`admin-cli` in `master`) updates users in `KEYCLOAK_TARGET_REALM` (or `KEYCLOAK_REALM`).
  * - Add user attribute `customer_id` and a "User Attribute" protocol mapper so fresh tokens include the claim.
  */
 
@@ -36,27 +35,41 @@ export function getKeycloakJwksUri(): string {
 }
 
 /**
- * Realm used for client_credentials (service account). Defaults to the same realm as tokens
- * so a single-realm dev setup stays simple.
+ * Realm used for the admin login request (password grant with `admin-cli` is usually `master`).
  */
 export function getKeycloakAdminRealm(): string {
-  return process.env.KEYCLOAK_ADMIN_REALM ?? getKeycloakPublicConfig().realm;
+  return process.env.KEYCLOAK_ADMIN_REALM ?? "master";
 }
 
-export function getKeycloakAdminClientCredentials(): {
-  clientId: string;
-  clientSecret: string;
-} {
-  const clientId = process.env.KEYCLOAK_ADMIN_CLIENT_ID;
-  const clientSecret = process.env.KEYCLOAK_ADMIN_CLIENT_SECRET;
+/**
+ * Realm that contains application users for Admin API CRUD (`users.findOne`, `users.update`).
+ * Defaults to the same realm as access-token issuer (`KEYCLOAK_REALM`).
+ */
+export function getKeycloakTargetRealm(): string {
+  return process.env.KEYCLOAK_TARGET_REALM ?? getKeycloakPublicConfig().realm;
+}
 
-  if (!clientId || !clientSecret) {
+/** Client id for direct-access grant (local dev: `admin-cli`). Separate from confidential SPA clients. */
+export function getKeycloakAdminPasswordClientId(): string {
+  return process.env.KEYCLOAK_ADMIN_AUTH_CLIENT_ID?.trim() || "admin-cli";
+}
+
+export function getKeycloakAdminPasswordCredentials(): {
+  clientId: string;
+  username: string;
+  password: string;
+} {
+  const clientId = getKeycloakAdminPasswordClientId();
+  const username = process.env.KEYCLOAK_ADMIN_USERNAME;
+  const password = process.env.KEYCLOAK_ADMIN_PASSWORD;
+
+  if (!username || !password) {
     throw new Error(
-      "KEYCLOAK_ADMIN_CLIENT_ID and KEYCLOAK_ADMIN_CLIENT_SECRET must be set for POST /update-account",
+      "KEYCLOAK_ADMIN_USERNAME and KEYCLOAK_ADMIN_PASSWORD must be set for POST /update-account",
     );
   }
 
-  return { clientId, clientSecret };
+  return { clientId, username, password };
 }
 
 /** Optional: set to your API resource client_id if you want strict `aud` validation. */
