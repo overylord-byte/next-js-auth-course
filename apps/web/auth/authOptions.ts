@@ -1,6 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import KeycloakProvider from "next-auth/providers/keycloak";
-import { refreshKeycloakAccessToken } from "@/lib/auth/keycloakRefresh";
+import { refreshKeycloakAccessToken } from "@/auth/keycloakRefresh";
 
 export const authOptions: NextAuthOptions = {
   providers: [

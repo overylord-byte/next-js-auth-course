@@ -3,8 +3,8 @@
 import { getSession, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { getCustomer, updateAccount, type StubCustomer } from "@/lib/auth-lab/api";
-import { accessTokenHasCustomerId } from "@/lib/auth-lab/decodeAccessToken";
+import { accessTokenHasCustomerId } from "@/app/features/users/accessToken.utils";
+import { getCustomer, updateAccount, type StubCustomer } from "@/app/features/users/users.api";
 
 export default function UsersPage() {
   const { data: session, status, update } = useSession();
